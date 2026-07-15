@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Malaysia Home Loan Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF1F2; --surface:#FFFFFF; --surface-2:#F7F9F9;
+    --ink:#0E2A31; --ink-soft:#4C6068; --ink-faint:#8598A0;
+    --line:#DBE3E5; --line-strong:#C6D2D5;
+    --accent:#0C7A63; --accent-deep:#095A48; --accent-soft:#E3F1ED;
+    --neutral-bar:#B9C6CA; --shadow:0 1px 2px rgba(14,42,49,.04),0 8px 24px rgba(14,42,49,.06);
+    --r:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    line-height:1.5;font-size:15px;
+    padding:clamp(16px,4vw,48px);
+  }
+  .num{font-family:'IBM Plex Mono',monospace;font-feature-settings:"tnum" 1;font-variant-numeric:tabular-nums}
+  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif}
+
+  .wrap{max-width:1180px;margin:0 auto}
+
+  /* ---- header ---- */
+  header{margin-bottom:28px}
+  .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  h1{font-size:clamp(28px,4.5vw,42px);font-weight:600;letter-spacing:-.02em;margin-top:6px;line-height:1.05}
+  header p{color:var(--ink-soft);margin-top:10px;max-width:52ch}
+
+  /* ---- layout ---- */
+  .grid{display:grid;grid-template-columns:minmax(320px,380px) 1fr;gap:24px;align-items:start}
+  @media(max-width:860px){.grid{grid-template-columns:1fr}}
+
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+  .inputs{position:sticky;top:24px;padding:22px}
+  @media(max-width:860px){.inputs{position:static}}
+
+  .group+.group{margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}
+  .group-title{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--ink-faint);font-weight:600;margin-bottom:14px}
+  .group-title::before{content:"";width:6px;height:6px;border-radius:2px;background:var(--accent)}
+
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  label{display:block;font-size:13px;color:var(--ink-soft);font-weight:500;margin-bottom:6px}
+  .inp{position:relative;display:flex;align-items:center}
+  .inp .affix{position:absolute;color:var(--ink-faint);font-size:13px;pointer-events:none;font-family:'IBM Plex Mono',monospace}
+  .inp .affix.left{left:12px}
+  .inp .affix.right{right:12px}
+  input[type=number],input[type=text]{
+    width:100%;border:1px solid var(--line-strong);background:var(--surface-2);
+    border-radius:9px;padding:10px 12px;font-size:15px;color:var(--ink);
+    font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  .inp.has-left input{padding-left:38px}
+  .inp.has-right input{padding-right:34px}
+  input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  input[type=number]{-moz-appearance:textfield}
+
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+  /* toggle */
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;
+    background:var(--surface-2);border:1px solid var(--line-strong);border-radius:9px;padding:9px 12px}
+  .toggle-row span{font-size:13px;color:var(--ink-soft);font-weight:500}
+  .switch{position:relative;width:46px;height:26px;flex-shrink:0}
+  .switch input{opacity:0;width:0;height:0;position:absolute}
+  .slider{position:absolute;inset:0;background:var(--neutral-bar);border-radius:20px;cursor:pointer;transition:.2s}
+  .slider::before{content:"";position:absolute;height:20px;width:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .switch input:checked+.slider{background:var(--accent)}
+  .switch input:checked+.slider::before{transform:translateX(20px)}
+
+  /* ---- results ---- */
+  .results{display:flex;flex-direction:column;gap:22px}
+
+  .hero{padding:26px 26px 22px;overflow:hidden;position:relative}
+  .hero .lbl{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-deep);font-weight:600}
+  .hero .saved{font-size:clamp(40px,7vw,64px);font-weight:600;color:var(--accent);letter-spacing:-.02em;line-height:1;margin:8px 0 4px}
+  .hero .sub{color:var(--ink-soft);font-size:14px}
+  .hero .sub b{color:var(--ink);font-weight:600}
+
+  .bars{margin-top:22px;display:flex;flex-direction:column;gap:12px}
+  .bar-block{}
+  .bar-head{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;color:var(--ink-soft)}
+  .bar-head .v{font-family:'IBM Plex Mono',monospace;color:var(--ink);font-weight:500}
+  .track{height:12px;background:var(--surface-2);border-radius:6px;overflow:hidden}
+  .fill{height:100%;border-radius:6px;transition:width .45s cubic-bezier(.2,.7,.2,1)}
+  .fill.without{background:var(--neutral-bar)}
+  .fill.with{background:linear-gradient(90deg,var(--accent),var(--accent-deep))}
+
+  .stats{padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-radius:var(--r);overflow:hidden}
+  @media(max-width:520px){.stats{grid-template-columns:1fr}}
+  .stat{background:var(--surface);padding:16px 18px}
+  .stat .k{font-size:12px;color:var(--ink-faint);font-weight:500;letter-spacing:.02em}
+  .stat .val{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;margin-top:5px;letter-spacing:-.01em}
+  .stat .cmp{font-size:12px;color:var(--ink-soft);margin-top:3px}
+  .stat .cmp .old{color:var(--ink-faint);text-decoration:line-through}
+
+  .card-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 0}
+  .card-head h2{font-size:16px;font-weight:600;letter-spacing:-.01em}
+  .card-head .hint{font-size:12px;color:var(--ink-faint)}
+
+  .chart-wrap{padding:12px 18px 20px}
+  svg{display:block;width:100%;height:auto}
+  .legend{display:flex;gap:18px;padding:0 22px 16px;font-size:12px;color:var(--ink-soft)}
+  .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+
+  /* amortization */
+  details{border-top:1px solid var(--line)}
+  summary{list-style:none;cursor:pointer;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:15px;color:var(--ink)}
+  summary::-webkit-details-marker{display:none}
+  summary .chev{transition:transform .2s;color:var(--ink-faint)}
+  details[open] summary .chev{transform:rotate(90deg)}
+  .table-scroll{max-height:420px;overflow:auto;margin:0 8px 12px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{position:sticky;top:0;background:var(--surface);text-align:right;padding:9px 12px;
+    font-weight:600;color:var(--ink-faint);font-size:11px;letter-spacing:.04em;text-transform:uppercase;
+    border-bottom:1px solid var(--line-strong);white-space:nowrap}
+  thead th:first-child{text-align:center}
+  tbody td{padding:7px 12px;text-align:right;font-family:'IBM Plex Mono',monospace;
+    border-bottom:1px solid var(--surface-2);color:var(--ink-soft);white-space:nowrap}
+  tbody td:first-child{text-align:center;color:var(--ink-faint)}
+  tbody tr:hover td{background:var(--surface-2)}
+  tbody tr.lump td{background:var(--accent-soft)}
+  tbody tr.lump td:first-child{color:var(--accent-deep);font-weight:600}
+
+  .note{color:var(--ink-faint);font-size:12.5px;line-height:1.65;padding:2px 4px}
+  .note b{color:var(--ink-soft)}
+  footer{margin-top:26px;text-align:center;color:var(--ink-faint);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Malaysia · Monthly-rest basis</div>
+    <h1>Home Loan Repayment Planner</h1>
+    <p>See your monthly instalment and exactly how much interest you save by paying extra each month or dropping in a lump sum. Type in any field — everything updates as you go.</p>
+  </header>
+
+  <div class="grid">
+    <!-- ================= INPUTS ================= -->
+    <div class="panel inputs">
+      <div class="group">
+        <div class="group-title">Property &amp; loan</div>
+        <div class="field">
+          <label for="price">Property price</label>
+          <div class="inp has-left"><span class="affix left">RM</span>
+            <input type="number" id="price" value="500000" min="0" step="1000"></div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="down">Down payment</label>
+            <div class="inp has-right"><input type="number" id="down" value="10" min="0" max="100" step="0.5"><span class="affix right">%</span></div>
+          </div>
+          <div class="field">
+            <label for="rate">Interest rate</label>
+            <div class="inp has-right"><input type="number" id="rate" value="4.3" min="0" max="20" step="0.05"><span class="affix right">%</span></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="years">Loan tenure</label>
+          <div class="inp has-right"><input type="number" id="years" value="35" min="1" max="40" step="1"><span class="affix right">yrs</span></div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-title">Insurance (optional)</div>
+        <div class="field">
+          <label for="mrta">MRTA premium — one-time</label>
+          <div class="inp has-left"><span class="affix left">RM</span>
+            <input type="number" id="mrta" value="8000" min="0" step="500"></div>
+        </div>
+        <div class="field">
+          <div class="toggle-row">
+            <span>Finance MRTA into loan</span>
+            <label class="switch"><input type="checkbox" id="mrtaFin" checked><span class="slider"></span></label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="mlta">MLTA premium — monthly</label>
+          <div class="inp has-left"><span class="affix left">RM</span>
+            <input type="number" id="mlta" value="0" min="0" step="10"></div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-title">Extra payments</div>
+        <div class="field">
+          <label for="extra">Extra each month</label>
+          <div class="inp has-left"><span class="affix left">RM</span>
+            <input type="number" id="extra" value="500" min="0" step="50"></div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="lump">Lump sum</label>
+            <div class="inp has-left"><span class="affix left">RM</span>
+              <input type="number" id="lump" value="20000" min="0" step="1000"></div>
+          </div>
+          <div class="field">
+            <label for="lumpM">Applied at month</label>
+            <div class="inp"><input type="number" id="lumpM" value="60" min="1" step="1"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= RESULTS ================= -->
+    <div class="results">
+      <div class="panel hero">
+        <div class="lbl">Interest you save</div>
+        <div class="saved num" id="heroSaved">RM0</div>
+        <div class="sub">Pay off <b id="heroYears">0 years</b> sooner and cut total cash out by <b class="num" id="heroCash">RM0</b>.</div>
+        <div class="bars">
+          <div class="bar-block">
+            <div class="bar-head"><span>Total interest — no extra</span><span class="v" id="barNoExtra">RM0</span></div>
+            <div class="track"><div class="fill without" id="fillNoExtra" style="width:100%"></div></div>
+          </div>
+          <div class="bar-block">
+            <div class="bar-head"><span>Total interest — with extra</span><span class="v" id="barExtra">RM0</span></div>
+            <div class="track"><div class="fill with" id="fillExtra" style="width:60%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="k">Monthly instalment</div>
+          <div class="val num" id="sInstal">RM0</div>
+          <div class="cmp" id="sInstalSub">base loan repayment</div>
+        </div>
+        <div class="stat">
+          <div class="k">Total monthly outflow</div>
+          <div class="val num" id="sOutflow">RM0</div>
+          <div class="cmp" id="sOutflowSub">incl. extra &amp; MLTA</div>
+        </div>
+        <div class="stat">
+          <div class="k">Loan cleared in</div>
+          <div class="val num" id="sPayoff">0 yrs</div>
+          <div class="cmp"><span class="old num" id="sPayoffOld">0</span> &rarr; with extra</div>
+        </div>
+        <div class="stat">
+          <div class="k">Total loan amount</div>
+          <div class="val num" id="sLoan">RM0</div>
+          <div class="cmp" id="sLoanSub">borrowed</div>
+        </div>
+        <div class="stat">
+          <div class="k">All-in cost — no extra</div>
+          <div class="val num" id="sAllNo">RM0</div>
+          <div class="cmp">principal + interest + insurance</div>
+        </div>
+        <div class="stat">
+          <div class="k">All-in cost — with extra</div>
+          <div class="val num" id="sAllYes" style="color:var(--accent)">RM0</div>
+          <div class="cmp">principal + interest + insurance</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="card-head"><h2>Outstanding balance over time</h2><span class="hint">years &rarr;</span></div>
+        <div class="legend">
+          <span><i style="background:var(--neutral-bar)"></i>Without extra</span>
+          <span><i style="background:var(--accent)"></i>With extra &amp; lump sum</span>
+        </div>
+        <div class="chart-wrap"><svg id="chart" viewBox="0 0 640 260" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Loan balance chart"></svg></div>
+      </div>
+
+      <div class="panel">
+        <details>
+          <summary><span>Amortization schedule <span style="color:var(--ink-faint);font-weight:400">(with extra &amp; lump sum)</span></span><span class="chev">&#8250;</span></summary>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Mth</th><th>Balance</th><th>Interest</th><th>Payment</th><th>Principal</th><th>Ending</th><th>Cum. interest</th></tr></thead>
+              <tbody id="amBody"></tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+
+      <div class="note">
+        <p><b>How it works.</b> Interest each month is charged on the outstanding balance (monthly rest), the way Malaysian banks calculate it. MRTA is a one-time premium — when financed into the loan it accrues interest; otherwise it's an upfront out-of-pocket cost. MLTA is a recurring monthly premium counted separately, since it doesn't reduce your principal.</p>
+        <p style="margin-top:8px">Most buyers take MRTA <b>or</b> MLTA, not both — leave the one you don't use at 0. MLTA total assumes the premium stops when the loan clears; real policies may run a fixed term. Figures exclude legal fees, stamp duty and early-settlement penalties. Planning tool only — not financial advice.</p>
+      </div>
+    </div>
+  </div>
+  <footer>Malaysia Home Loan Planner · calculations run entirely in your browser</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const ids = ['price','down','rate','years','mrta','mrtaFin','mlta','extra','lump','lumpM'];
+const RM = n => 'RM' + Math.round(n).toLocaleString('en-MY');
+const RM2 = n => 'RM' + n.toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+function num(id){ const v = parseFloat($(id).value); return isFinite(v) ? v : 0; }
+
+function yearsLabel(months){
+  const y = Math.floor(months/12), m = Math.round(months%12);
+  if(y===0) return m + (m===1?' month':' months');
+  if(m===0) return y + (y===1?' year':' years');
+  return y + 'y ' + m + 'm';
+}
+
+function calc(){
+  const price = Math.max(0,num('price'));
+  const downPct = Math.min(100,Math.max(0,num('down')))/100;
+  const r = Math.max(0,num('rate'))/100/12;
+  const years = Math.max(1,Math.round(num('years')));
+  const n = years*12;
+  const mrta = Math.max(0,num('mrta'));
+  const fin = $('mrtaFin').checked;
+  const mlta = Math.max(0,num('mlta'));
+  const extra = Math.max(0,num('extra'));
+  const lump = Math.max(0,num('lump'));
+  const lumpM = Math.max(1,Math.round(num('lumpM')));
+
+  const loan = price*(1-downPct) + (fin ? mrta : 0);
+  const pmt = r>0 ? loan*r/(1-Math.pow(1+r,-n)) : loan/n;
+
+  // baseline (no extra) — analytic + balance track for chart
+  const baseInterest = pmt*n - loan;
+  const baseTrack = [loan];
+  let b = loan;
+  for(let i=1;i<=n;i++){ const int=b*r; b=Math.max(0,b-(pmt-int)); baseTrack.push(b); }
+
+  // with extra + lump — full simulation
+  const rows=[]; const exTrack=[loan];
+  let bal=loan, cum=0, m=0;
+  while(bal>0.005 && m<2000){
+    m++;
+    const int = bal*r;
+    const drop = extra + (m===lumpM ? lump : 0);
+    const pay = Math.min(pmt+drop, bal+int);
+    const prin = pay-int;
+    const beg = bal;
+    bal = Math.max(0,bal-prin);
+    cum += int;
+    rows.push({m,beg,int,pay,prin,end:bal,cum,lump:(m===lumpM && lump>0)});
+    exTrack.push(bal);
+  }
+  const exMonths = m;
+  const exInterest = cum;
+
+  const mrtaOOP = fin ? 0 : mrta;
+  const mltaNo = mlta*n;
+  const mltaYes = mlta*exMonths;
+  const allNo  = (baseInterest+loan) + mrtaOOP + mltaNo;
+  const allYes = (exInterest+loan)   + mrtaOOP + mltaYes;
+
+  // ---- paint ----
+  $('heroSaved').textContent = RM(baseInterest-exInterest);
+  $('heroYears').textContent = yearsLabel(n-exMonths);
+  $('heroCash').textContent  = RM(allNo-allYes);
+
+  $('barNoExtra').textContent = RM(baseInterest);
+  $('barExtra').textContent   = RM(exInterest);
+  const maxI = Math.max(baseInterest, exInterest, 1);
+  $('fillNoExtra').style.width = (baseInterest/maxI*100)+'%';
+  $('fillExtra').style.width   = (exInterest/maxI*100)+'%';
+
+  $('sInstal').textContent  = RM2(pmt);
+  $('sOutflow').textContent = RM2(pmt+extra+mlta);
+  $('sPayoff').textContent  = yearsLabel(exMonths);
+  $('sPayoffOld').textContent = yearsLabel(n);
+  $('sLoan').textContent    = RM(loan);
+  $('sLoanSub').textContent = fin && mrta>0 ? 'incl. RM'+Math.round(mrta).toLocaleString('en-MY')+' MRTA' : 'borrowed';
+  $('sAllNo').textContent   = RM(allNo);
+  $('sAllYes').textContent  = RM(allYes);
+
+  drawChart(baseTrack, exTrack, loan, n, years);
+  fillTable(rows);
+}
+
+function fillTable(rows){
+  const tb = $('amBody');
+  tb.innerHTML = rows.map(r =>
+    `<tr class="${r.lump?'lump':''}"><td>${r.m}</td><td>${RM2(r.beg)}</td><td>${RM2(r.int)}</td><td>${RM2(r.pay)}</td><td>${RM2(r.prin)}</td><td>${RM2(r.end)}</td><td>${RM2(r.cum)}</td></tr>`
+  ).join('');
+}
+
+function drawChart(base, ex, loan, n, years){
+  const W=640,H=260,padL=54,padR=14,padT=14,padB=30;
+  const iw=W-padL-padR, ih=H-padT-padB;
+  const maxX=n, maxY=loan||1;
+  const X = i => padL + (i/maxX)*iw;
+  const Y = v => padT + (1-v/maxY)*ih;
+  const path = arr => arr.map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join(' ');
+
+  // gridlines + y labels (RM), x labels (years)
+  let g='';
+  for(let k=0;k<=4;k++){
+    const val=maxY*(1-k/4), y=padT+ih*k/4;
+    g+=`<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="#E7ECED"/>`;
+    g+=`<text x="${padL-8}" y="${(y+4).toFixed(1)}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8598A0">${val>=1000?Math.round(val/1000)+'k':Math.round(val)}</text>`;
+  }
+  const step = years<=15?5:10;
+  for(let yr=0; yr<=years; yr+=step){
+    const x=X(yr*12);
+    g+=`<text x="${x.toFixed(1)}" y="${H-10}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8598A0">${yr}</text>`;
+  }
+  // area under "with extra"
+  const areaPts = ex.map((v,i)=>X(i).toFixed(1)+' '+Y(v).toFixed(1)).join(' L');
+  const area = `M${X(0)} ${Y(0)} L${areaPts} L${X(ex.length-1).toFixed(1)} ${Y(0)} Z`;
+
+  $('chart').innerHTML = `
+    <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0C7A63" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#0C7A63" stop-opacity="0"/>
+    </linearGradient></defs>
+    ${g}
+    <path d="${area}" fill="url(#ag)"/>
+    <path d="${path(base)}" fill="none" stroke="#B9C6CA" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="${path(ex)}" fill="none" stroke="#0C7A63" stroke-width="2.5" stroke-linejoin="round"/>`;
+}
+
+ids.forEach(id=>{ $(id).addEventListener('input',calc); $(id).addEventListener('change',calc); });
+calc();
+</script>
+</body>
+</html>
